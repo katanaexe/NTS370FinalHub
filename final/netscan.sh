@@ -27,6 +27,7 @@ write_ports_section() {
 #Open Ports and Detected Services
 echo "Open Ports and Detected Services: "
 echo "Example: Port 80/ tcp - http"
+echo "Be advised. This process may take 2-3 minutes to resolve"
 sudo nmap -sV -sC --script vuln $TARGET_IP | grep "open"
 #sudo nmap -sV -sC --script vuln $TARGET_IP | grep "open"
 }
