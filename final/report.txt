@@ -1,0 +1,15 @@
+NETWORK SECURITY SCAN REPORT
+Target IP Address/ Hostname: 127.0.0.1
+Open Ports and Detected Services: 
+Example: Port 80/ tcp - http
+22/tcp   open  ssh     OpenSSH 7.6p1 Ubuntu 4ubuntu0.5 (Ubuntu Linux; protocol 2.0)
+3000/tcp open  ppp?
+5900/tcp open  vnc     VNC (protocol 3.8)
+Potential Vulnerabilities Identified:
+Sample data: CVE-2023-XXXX - Outdated Web Server
+Sample data: Default Credentials - FTP Server
+Recommendations for Remediation
+Update all software to the latest versions.
+Today's Date: 2026-08-10
+Current Time: 04:29:16
+END OF REPORT
