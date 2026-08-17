@@ -1,15 +1,25 @@
 NETWORK SECURITY SCAN REPORT
 Target IP Address/ Hostname: 127.0.0.1
+Be advised. This process may take 2-3 minutes to resolve
 Open Ports and Detected Services: 
-Example: Port 80/ tcp - http
 22/tcp   open  ssh     OpenSSH 7.6p1 Ubuntu 4ubuntu0.5 (Ubuntu Linux; protocol 2.0)
 3000/tcp open  ppp?
 5900/tcp open  vnc     VNC (protocol 3.8)
 Potential Vulnerabilities Identified:
-Sample data: CVE-2023-XXXX - Outdated Web Server
-Sample data: Default Credentials - FTP Server
+---Analyzing Service Versions---
+[!!] POTENTIAL VULNERABILITY: OpenSSH 7.6p1 detected. Lacks modern security flags and cipher defaults found in recent versions.
+
+Querying NVD for vulnerabilities in: OpenSSH 7.6...
+  CVE ID: CVE-1999-0661
+  Description: A system is running a version of software that was replaced with a Trojan Horse at one of its distribution points, such as (1) TCP Wrappers 7.6, (2) util-linux 2.9g, (3) wuarchive ftpd (wuftpd) 2.2 and 2.1f, (4) IRC client (ircII) ircII 2.2.9, (5) OpenSSH 3.4p1, or (6) Sendmail 8.12.6.
+  Severity: N/A
+---
+  CVE ID: CVE-2017-15906
+  Description: The process_open function in sftp-server.c in OpenSSH before 7.6 does not properly prevent write operations in readonly mode, which allows attackers to create zero-length files.
+  Severity: MEDIUM
+---
 Recommendations for Remediation
 Update all software to the latest versions.
-Today's Date: 2026-08-10
-Current Time: 04:29:16
+Today's Date: 2026-08-17
+Current Time: 04:42:18
 END OF REPORT
