@@ -7,19 +7,24 @@ Open Ports and Detected Services:
 5900/tcp open  vnc     VNC (protocol 3.8)
 Potential Vulnerabilities Identified:
 ---Analyzing Service Versions---
-[!!] POTENTIAL VULNERABILITY: OpenSSH 7.6p1 detected. Lacks modern security flags and cipher defaults found in recent versions.
+Port: 22
+Service: ssh
+Version Info: OpenSSH 7.6p1 Ubuntu 4ubuntu0.5 (Ubuntu Linux; protocol 2.0)
 
-Querying NVD for vulnerabilities in: OpenSSH 7.6...
-  CVE ID: CVE-1999-0661
-  Description: A system is running a version of software that was replaced with a Trojan Horse at one of its distribution points, such as (1) TCP Wrappers 7.6, (2) util-linux 2.9g, (3) wuarchive ftpd (wuftpd) 2.2 and 2.1f, (4) IRC client (ircII) ircII 2.2.9, (5) OpenSSH 3.4p1, or (6) Sendmail 8.12.6.
-  Severity: N/A
----
-  CVE ID: CVE-2017-15906
-  Description: The process_open function in sftp-server.c in OpenSSH before 7.6 does not properly prevent write operations in readonly mode, which allows attackers to create zero-length files.
-  Severity: MEDIUM
----
-Recommendations for Remediation
-Update all software to the latest versions.
-Today's Date: 2026-08-17
-Current Time: 04:42:18
+Querying NVD for vulnerabilities in: ssh OpenSSH 7.6p1 Ubuntu 4ubuntu0.5 (Ubuntu Linux; protocol 2.0)...
+  [+] No vulnerabilities were returned by NVD for this keyword search.
+Port: 5900
+Service: vnc
+Version Info: VNC (protocol 3.8)
+
+Querying NVD for vulnerabilities in: vnc VNC (protocol 3.8)...
+  [+] No vulnerabilities were returned by NVD for this keyword search.
+Recommendations for Remediation:
+Verify services and ports affected.
+Review detected vulnerabilities against NVD and other trusted sources
+Employ role-based access control or network segmentation during analysis
+Disable any services that are not essential
+Perform scans to track and explore detected issues
+Today's Date: 2026-08-24
+Current Time: 01:46:42
 END OF REPORT

@@ -6,67 +6,58 @@ echo "NETWORK SECURITY SCAN REPORT"
 
 input_validation() {
 #Checking if the user input just one argument/ checking argument 
-#count
-#TARGET for testing is local 127.0.0.1
-if [ "$#" -lt 1 ]; then
-  echo "Usage: $0 $TARGET_IP" >&2
-  #exit 1
-fi
- TARGET_IP="$1" # Store the first argument in a variable
-
-#Target IP Address/ Hostname
-#call for user input and request the input of the target IP address. This must be stored in a variable as well!
-
-read -r -p "Please enter target IP address: " TARGET_IP
 
 echo "Target IP Address/ Hostname: $TARGET_IP"
+
 }
 
-#sudo nmap -sV -sC --script vuln -oX temp_scan_results.xml $TARGET_IP
-
 write_ports_section() {
+local scan_results="$1"
+
 echo "Be advised. This process may take 2-3 minutes to resolve"
 #Open Ports and Detected Services
 echo "Open Ports and Detected Services: "
-#echo "Example: Port 80/ tcp - http"
 
-nmap -sV -sC --script vuln "$TARGET_IP"| grep "open"
-#nmap -sV -sC --script vuln $TARGET_IP | grep "open"
-#this edited out one was unquote/ did not call the target IP address correctly
+echo "$scan_results" | grep "open"
+##Running once in main function
+
 }
-echo "Be advised. This process may take 2-3 minutes to resolve"
+
 
 write_vulns_section() {
+
+local scan_results="$1"
+
 echo "Potential Vulnerabilities Identified:"
-SCAN_RESULTS=$(nmap -sV --script vuln "$TARGET_IP")
-#echo "$SCAN_RESULTS"
-#second run of nmap - editing out because it doubles the scan time; I added a run of nmap in updating this function rather than modifying
-  #nmap -sV -sC--script vuln "$TARGET_IP"
+#nmap scan appears in main and run once
+
 echo "---Analyzing Service Versions---"
 #need to call query_nvd within this function to define the appropriate variable line by line!
-echo "$SCAN_RESULTS" | while read -r line; do
-  case "$line" in
-    #*Apache\ httpd\ 2.4.49*)
-     # echo "[!!] VULNERABILITY DETECTED: Apache 2.4.49 is running, which is vulnerable to path traversal (CVE-2021-41773)."
-      #query_nvd "Apache" "2.4.49"
-      #;;
-      #editing out to confirm that a null response is not triggering any unwanted results while I troubleshoot
-    *OpenSSH\ 7.6p1*)
-      echo "[!!] POTENTIAL VULNERABILITY: OpenSSH 7.6p1 detected. Lacks modern security flags and cipher defaults found in recent versions."
-      #query_nvd "OpenSSH" "7.6p1"
-      #this returned nothing from NVD and I wonder if it's just too specific on the version; trying 7.6 and keeping returned NVD result
-      query_nvd "OpenSSH" "7.6"
-      ;;
-  esac
-done
-#query_nvd "$product_name" "$product_version">> "$REPORT_FILE"
-#Remove the above run of query_nvd as it is likely pulling the null result because it has NO DEFINED VARIABLES, you silly goose (this is directed at myself, Dr. Becote)
+echo "$scan_results" | while read -r line; do
+    if [[ "$line" =~ ^([0-9]+)/tcp[[:space:]]+open[[:space:]]+([^[:space:]]+)[[:space:]]+(.+)$ ]]; then
 
+        port="${BASH_REMATCH[1]}"
+        service="${BASH_REMATCH[2]}"
+        version_info="${BASH_REMATCH[3]}"
+
+        echo "Port: $port"
+        echo "Service: $service"
+        echo "Version Info: $version_info"
+
+        query_nvd "$service" "$version_info" >> "$REPORT_FILE"
+    fi
+done
 }
 
 write_recs_section() {
-echo "Recommendations for Remediation"
-echo "Update all software to the latest versions."
+  #generalized recommendations 
+echo "Recommendations for Remediation:"
+echo "Verify services and ports affected."
+echo "Review detected vulnerabilities against NVD and other trusted sources"
+echo "Employ role-based access control or network segmentation during analysis"
+echo "Disable any services that are not essential"
+echo "Perform scans to track and explore detected issues"
+
 }
 
 write_footer() {
@@ -78,12 +69,12 @@ echo "Current Time: $TIME"
 echo "END OF REPORT"
 }
 
-#Adding query_nvd
+#Adding query_nvd from assignment prompt
 query_nvd() {
     local product="$1"
     local version="$2"
     # The NVD API is public but has rate limits. We'll request a small number of results.
-    local results_limit=3
+    local results_limit=10
     
     echo # Add a newline for formatting
     echo "Querying NVD for vulnerabilities in: $product $version..."
@@ -97,7 +88,13 @@ query_nvd() {
     # Use curl to fetch the data (-s for silent) and jq to parse the JSON response.
     # We pipe the output of curl directly into jq.
     local vulnerabilities_json
-    vulnerabilities_json=$(curl -s "$nvd_api_url")
+    vulnerabilities_json=$(curl -s --connect-timeout 10 --max-time 30 "$nvd_api_url")
+    
+    if ! vulnerability_json=$(curl -s ... "$nvd_api_url"); then
+        echo "[!] Error: NVD request failed."
+        return 1
+    fi
+
 
     # --- Defensive Programming: Check for Errors ---
     if [[ -z "$vulnerabilities_json" ]]; then
@@ -109,7 +106,7 @@ query_nvd() {
         return
     fi
     if ! echo "$vulnerabilities_json" | jq -e '.vulnerabilities[0]' > /dev/null; then
-        echo "  [+] No vulnerabilities found in NVD for this keyword search."
+        echo "  [+] No vulnerabilities were returned by NVD for this keyword search."
         return
     fi
     # --- End Error Checks ---
@@ -123,13 +120,37 @@ query_nvd() {
 
 main() {
 
+if [ "$#" -ne 1 ]; then
+  echo "Usage: $0 $TARGET_IP" >&2
+  exit 1
+fi
+
+#checks that the correct and needed services are installed/ pesent; if not, they are returning an error
+for command in nmap curl jq; do
+    if ! command -v "$command" >/dev/null 2>&1; then
+        echo "Error: $command is not installed." >&2
+        exit 1
+    fi
+done
+
+TARGET_IP="$1" # Store the first argument in a variable
+
+#Target IP Address/ Hostname
+#call for user input and request the input of the target IP address. This must be stored in a variable as well!
+
 REPORT_FILE="report.txt"
 
-write_header > report.txt
-input_validation >> report.txt
-write_ports_section >> report.txt
-write_vulns_section >> report.txt
-write_recs_section >> report.txt
+#adding progress messages
+echo "Running Nmap scan using target IP: $TARGET_IP ..." >&2
+SCAN_RESULTS=$(nmap -sV -sC --script vuln "$TARGET_IP")
+#indicates completed scan after scan resolves
+echo "Nmap scan complete!" >&2
+
+write_header > $REPORT_FILE
+input_validation "$TARGET_IP" >> $REPORT_FILE
+write_ports_section "$SCAN_RESULTS" >> $REPORT_FILE
+write_vulns_section "$SCAN_RESULTS" >> $REPORT_FILE
+write_recs_section >> $REPORT_FILE
 write_footer >> $REPORT_FILE
 }
 
